@@ -1,0 +1,14 @@
+{
+  "format": "iron-curtain-chem-warning-v1",
+  "frame_version": 1,
+  "node_address": 7,
+  "gateway_address_hex": "0001",
+  "frame_size": 48,
+  "link_wait_ms": 5000,
+  "siren_raise_pulse_us": 1500,
+  "siren_lower_pulse_us": 500,
+  "dht_timeout_us": 240,
+  "lcd_i2c_address_hex": "27",
+  "max_rcv_len": 256,
+  "example_frame": "{\"evt\":\"hazard\",\"siren\":1}"
+}
