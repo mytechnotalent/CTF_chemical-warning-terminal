@@ -323,9 +323,9 @@ Read the actual names in `include/implant.h`, `include/ir_remote.h`, and
 
 | Bug # | Name | Severity | Description | Hint |
 |-------|------|----------|-------------|------|
-| **Bug #1** | The Coordinated Beacon | **CRITICAL** | The beacon gate is inverted, so the implant reports the beacon armed and `monitor_sabotage` masks the hazard as `SAFE`. | Find the `cbz` gate in `implant_beacon_armed` at `0xA3FD`. |
-| **Bug #2** | The Persistence | **HIGH** | The persist gate is inverted, so a present reserved-sector marker re-installs the beacon on boot. | Find the `beq` gate in `implant_init` at `0xA441`. |
-| **Bug #3** | The Sabotage Marker | **HIGH** | The marker gate is inverted, so the first boot programs sabotage marker `0x58` into reserved sector `0x103FF000` with the real flash API. | Find the `beq` gate in `implant_init` at `0xA451`. |
+| **Bug #1** | The Coordinated Beacon | **CRITICAL** | The beacon gate is inverted, so the implant reports the beacon armed and `monitor_sabotage` masks the hazard as `SAFE`. | Find the `cbz` gate in `implant_beacon_armed`. |
+| **Bug #2** | The Persistence | **HIGH** | The persist gate is inverted, so a present reserved-sector marker re-installs the beacon on boot. | Find the `beq` gate in `implant_init`. |
+| **Bug #3** | The Sabotage Marker | **HIGH** | The marker gate is inverted, so the first boot programs sabotage marker `0x58` into reserved sector `0x103FF000` with the real flash API. | Find the `beq` gate in `implant_init`. |
 | **Bug #4** | The Hazard Command Authorization | **CRITICAL** | The authorization verdict is inverted, so a failed or replayed hazard command is accepted. | The correct branch rejects when authorization fails. |
 
 All four defects are same-size in-place byte patches, so no address moves.
@@ -383,7 +383,7 @@ Always call the stored entry the **reset handler**, never the reset pointer.
 ### Task 2: Bug #1 The Coordinated Beacon (20 points)
 
 1. In Ghidra, find `implant_beacon_armed` (starts at `0x1000A3F4`); the beacon gate
-   is inlined. Locate the gate at file offset `0xA3FD` (VA `0x1000A3FD`).
+   is inlined. Locate the gate.
 2. Document the coordinated beacon: the beacon gate at `0x20013CF8`, the corrected
    `cbz` that reports nothing when the gate is clear, and the compromised `cbnz`
    that reports the beacon armed, so `monitor_sabotage` returns true and the
@@ -401,7 +401,7 @@ Always call the stored entry the **reset handler**, never the reset pointer.
 ### Task 3: Bug #2 The Persistence (20 points)
 
 1. The `implant_reinstall` path is inlined into `implant_init` (starts at
-   `0x1000A40C`). Locate the persist gate at file offset `0xA441` (VA `0x1000A441`).
+   `0x1000A40C`). Locate the persist gate.
 2. Document the persistence: the persist gate at `0x20013CFA`, the corrected `beq`
    that returns when the gate is clear, and the compromised `bne` that reads the
    reserved sector and re-installs the beacon on boot when the marker is present.
@@ -418,7 +418,7 @@ Always call the stored entry the **reset handler**, never the reset pointer.
 ### Task 4: Bug #3 The Sabotage Marker (20 points)
 
 1. The `implant_infect` path is inlined into `implant_init` (starts at
-   `0x1000A40C`). Locate the marker gate at file offset `0xA451` (VA `0x1000A451`).
+   `0x1000A40C`). Locate the marker gate.
 2. Document the CoreDebug `DHCSR` anti-debug and how you defeat it to observe the
    marker. Clear the debug bits with GDB (for example with
    `set {unsigned int}0xE000EDF0 = 0`) or patch the `DHCSR` read in a scratch copy,
@@ -438,9 +438,7 @@ Always call the stored entry the **reset handler**, never the reset pointer.
 ### Task 5: Bug #4 The Hazard Command Authorization (20 points)
 
 1. In Ghidra, find `control_handle_frame` (starts at `0x10007620`) and locate the
-   authorization branch at file offset `0x768D` (VA `0x1000768D`). The branch
-   halfword begins at `0x1000768C`; the condition byte is the high byte at
-   `0x1000768D`.
+   authorization branch. The condition byte is the high byte of the branch halfword.
 2. Document the authorization verdict and the exact branch condition that is supposed
    to reject a failed or replayed authorization.
 3. Patch the byte so an unauthenticated or replayed hazard command is rejected

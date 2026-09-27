@@ -134,7 +134,7 @@ images are 102,912 bytes.
 
 | Criterion | Points | Full credit | Partial credit | No credit |
 |-----------|--------|-------------|----------------|-----------|
-| **[DOCUMENT]** Located the coordinated beacon gate at 0x1000A3FD | 5 | Address and function (`implant_beacon_armed`) identified | Approximate | Not found |
+| **[DOCUMENT]** Located the coordinated beacon gate | 5 | Address and function (`implant_beacon_armed`) identified | Approximate | Not found |
 | **[DOCUMENT]** Documented the coordinated beacon that reports armed and masks the hazard as SAFE | 5 | Beacon gate `0x20013CF8`, beacon reported armed, `monitor_sabotage` forces `SAFE` | Partial | Wrong |
 | **[DOCUMENT & PATCH]** Patched 0xB9 to 0xB1 so the beacon is not reported armed | 7 | Byte `0xB9` changed to `0xB1` | Wrong byte | Not patched |
 | **[DOCUMENT]** Explained why the beacon report masks the hazard as an all clear | 3 | Local override beside the authenticated command path, the warning withheld as a policy failure | Vague | Missing |
@@ -143,7 +143,7 @@ images are 102,912 bytes.
 
 | Criterion | Points | Full credit | Partial credit | No credit |
 |-----------|--------|-------------|----------------|-----------|
-| **[DOCUMENT]** Located the persistence re-install gate at 0x1000A441 | 5 | Address and inlined `implant_init` path identified | Approximate | Not found |
+| **[DOCUMENT]** Located the persistence re-install gate | 5 | Address and inlined `implant_init` path identified | Approximate | Not found |
 | **[DOCUMENT]** Documented the persistence re-install that re-arms the beacon on boot | 5 | Persist gate `0x20013CFA`, present marker `0x58`, boot re-install | Partial | Wrong |
 | **[DOCUMENT & PATCH]** Patched 0xD1 to 0xD0 so a present marker does not re-install the beacon | 7 | Byte `0xD1` changed to `0xD0` | Wrong byte | Not patched |
 | **[DOCUMENT]** Explained why reserved-flash state survives a firmware reflash | 3 | Reserved sector `0x103FF000`, write-once first run, outside the program region | Vague | Missing |
@@ -152,7 +152,7 @@ images are 102,912 bytes.
 
 | Criterion | Points | Full credit | Partial credit | No credit |
 |-----------|--------|-------------|----------------|-----------|
-| **[DOCUMENT]** Located the sabotage marker gate at 0x1000A451 | 5 | Address and inlined `implant_init` path identified | Approximate | Not found |
+| **[DOCUMENT]** Located the sabotage marker gate | 5 | Address and inlined `implant_init` path identified | Approximate | Not found |
 | **[DOCUMENT]** Documented the CoreDebug DHCSR anti-debug and how it is defeated under GDB | 5 | `0xE000EDF0`, `C_DEBUGEN` and `C_HALT`, and a real defeat method | Partial | Wrong |
 | **[DOCUMENT & PATCH]** Patched 0xD1 to 0xD0 so no sabotage marker is programmed to 0x103FF000 | 7 | Byte `0xD1` changed to `0xD0` | Wrong byte | Not patched |
 | **[DOCUMENT]** Explained the reserved sector 0x103FF000 and the sabotage marker byte 0x58 | 3 | Marker, reserved sector, write-once first run | Vague | Missing |
@@ -161,7 +161,7 @@ images are 102,912 bytes.
 
 | Criterion | Points | Full credit | Partial credit | No credit |
 |-----------|--------|-------------|----------------|-----------|
-| **[DOCUMENT]** Located the hazard command authorization branch at 0x1000768D | 5 | Address and function (`control_handle_frame`) identified | Approximate | Not found |
+| **[DOCUMENT]** Located the hazard command authorization branch | 5 | Address and function (`control_handle_frame`) identified | Approximate | Not found |
 | **[DOCUMENT]** Documented the authorization verdict inversion and the branch condition | 5 | Reject when the verdict is false | Partial | Wrong |
 | **[DOCUMENT & PATCH]** Patched 0xB9 to 0xB1 so failed and replayed authorizations are rejected | 7 | Byte `0xB9` changed to `0xB1` | Wrong byte | Not patched |
 | **[DOCUMENT]** Explained why an unauthenticated or replayed hazard command must be rejected | 3 | The applied command must see only an authorized verdict | Vague | Missing |
@@ -183,10 +183,10 @@ images are 102,912 bytes.
 |---------|-------------|-----------|
 | Reading the beacon gate backwards | The hazard is still masked as `SAFE` | Neutralize only on the clear-gate branch (`cbz`, `0xB1`) |
 | Reading the persist gate backwards | The beacon still re-installs from the reserved sector on boot | Neutralize only when the gate is clear (`beq`, `0xD0`) |
-| Confusing `cbz` and `cbnz` at `0xA3FD` or `0x768D` | The hazard is still masked and unauthenticated commands still apply | Neutralize only when the gate is clear (`cbz`, `0xB1`) |
-| Confusing `beq` and `bne` at `0xA441` or `0xA451` | The beacon still re-installs or the marker is still written | Neutralize only when the gate is clear (`beq`, `0xD0`) |
-| Patching the low byte at `0xA3FC`, `0xA440`, `0xA450`, or `0x768C` | The condition code never changes | Patch the high byte at `0xA3FD`, `0xA441`, `0xA451`, `0x768D` |
-| Searching for a standalone `implant_infect` or `implant_reinstall` symbol | Cannot find the inlined gates | Look inside `implant_init` at `0xA441` and `0xA451` |
+| Confusing `cbz` and `cbnz` | The hazard is still masked and unauthenticated commands still apply | Neutralize only when the gate is clear (`cbz`, `0xB1`) |
+| Confusing `beq` and `bne` | The beacon still re-installs or the marker is still written | Neutralize only when the gate is clear (`beq`, `0xD0`) |
+| Patching the low byte of a gate | The condition code never changes | Patch the high byte of the branch |
+| Searching for a standalone `implant_infect` or `implant_reinstall` symbol | Cannot find the inlined gates | Look inside `implant_init` |
 | Confusing the persist gate with the marker gate | Both sit in `implant_init` at different addresses | Patch the persist gate first, then the marker gate |
 | Patching the shipped image before observing the write | You never prove the sabotage marker write | Defeat `DHCSR` under GDB first, then patch the artifact |
 | Fabricating the GDB session | Verification fails | Show the command sequence and the real observed code path |
