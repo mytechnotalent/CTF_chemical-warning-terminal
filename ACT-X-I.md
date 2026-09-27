@@ -248,7 +248,7 @@ drawn from `ACT-X-main-disasm.txt`:
 | Implant | `implant_init` | `0x1000A40C` |
 | Implant | `implant_tick` | `0x1000A4B8` |
 | Radio | `radio_init` | `0x1000A564` |
-| Hazard annunciator | `status_led_show` | `0x1000A95C` |
+| Hazard annunciator | `status_led_show` | `0x1000A89C` |
 
 Annotated disassembly for the key functions is provided in
 `ACT-X-main-disasm.txt`. Use it as a map, then confirm every byte yourself.
@@ -345,9 +345,9 @@ it.
 This is an analysis obstacle, not a graded defect on its own. The implant reads
 CoreDebug `DHCSR` at `0xE000EDF0` and returns early while a probe is attached. In
 `implant_init` the read is the `ldr.w r3, [r0, #3568]` at `0x1000A42A`, the
-`lsls r3, r3, #30` at `0x1000A40E` keeps `C_HALT` and `C_DEBUGEN`, and the
-`beq.n` at `0x1000A410` continues while the probe is absent. The same register is
-read in `implant_tick` at `0x1000A4A4`. It is identical in both the compromised and
+`lsls r3, r3, #30` at `0x1000A42E` keeps `C_HALT` and `C_DEBUGEN`, and the
+`beq.n` at `0x1000A430` continues while the probe is absent. The same register is
+read in `implant_tick` at `0x1000A4C4`. It is identical in both the compromised and
 corrected images. You must defeat it to observe the sabotage marker write before you
 patch the shipped artifact.
 

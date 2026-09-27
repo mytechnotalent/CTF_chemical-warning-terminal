@@ -112,7 +112,7 @@ The stored reset handler address has bit 0 set, selecting Thumb mode. Clearing b
 | Implant | `implant_init` | `0x1000A40C` |
 | Implant | `implant_tick` | `0x1000A4B8` |
 | Radio | `radio_init` | `0x1000A564` |
-| Hazard annunciator | `status_led_show` | `0x1000A95C` |
+| Hazard annunciator | `status_led_show` | `0x1000A89C` |
 
 ### Grading Rubric (1-to-1 Mapping)
 
@@ -167,20 +167,20 @@ beacon gate is at file offset `0xA3FD` (VA `0x1000A3FD`). The corrected image is
 ```
 
 **Instruction decode.** `ldr r3, [pc, #12]` loads the beacon gate address
-`0x20013CF8` (literal at `0x1000A3E4`), and `ldrb r3, [r3, #0]` reads the gate into
-`r3` at `0x1000A3D6`. `and.w r0, r3, #255` stages the gate value as the return
+`0x20013CF8` (literal at `0x1000A404`), and `ldrb r3, [r3, #0]` reads the gate into
+`r3` at `0x1000A3F6`. `and.w r0, r3, #255` stages the gate value as the return
 value. The branch at `0x1000A3FC` decides whether the beacon may be reported. The
 correct code reports nothing when the beacon gate is clear, so the branch at
-`0x1000A3FC` must be `cbz` (`0xB1`) to the `0x1000A3E2` return, where `r0` still
+`0x1000A3FC` must be `cbz` (`0xB1`) to the `0x1000A402` return, where `r0` still
 holds zero. When the gate is set, `ldr r3, [pc, #8]` loads the beacon armed latch at
-`0x20013CF7` (literal at `0x1000A3E8`) and returns it. `monitor_sabotage` then
+`0x20013CF7` (literal at `0x1000A408`) and returns it. `monitor_sabotage` then
 returns true, `monitor_effective_state` forces `CLEAR`, and the terminal renders
 `ST:SAFE` with the green CLEAR lamp lit. The condition byte is the high byte at
 `0x1000A3FD`.
 
 | Address | File offset | Compromised byte | Compromised instruction | Correct byte | Correct instruction |
 |---------|-------------|------------------|-------------------------|--------------|---------------------|
-| `0x1000A3FD` | `0xA3FD` | `0xB9` | `cbnz r3, 0x1000A3E2` | `0xB1` | `cbz r3, 0x1000A3E2` |
+| `0x1000A3FD` | `0xA3FD` | `0xB9` | `cbnz r3, 0x1000A402` | `0xB1` | `cbz r3, 0x1000A402` |
 
 **Patch.**
 
@@ -222,8 +222,8 @@ see or stop a local module that decides to report a fake all clear.
   report the beacon while the gate is clear".
 - The beacon gate is at `0x20013CF8`. The beacon armed latch is at `0x20013CF7`, and
   the re-installed flag is at `0x20013CFB`. `implant_beacon_armed` reads the beacon
-  gate (literal at `0x1000A3E4`) and returns the armed latch (literal at
-  `0x1000A3E8`).
+  gate (literal at `0x1000A404`) and returns the armed latch (literal at
+  `0x1000A408`).
 - The magic beacon command is `CHEM_IMPLANT_BEACON_MAGIC`
   (`IRON-CURTAIN-BEACON-2026`) at `CHEM_IMPLANT_BEACON_MAGIC_LEN` (`24`) bytes. A
   wrong token, a null pointer, or an attached probe leaves the beacon disarmed.
@@ -322,19 +322,19 @@ the tick counter at `0x20013718`, `str r3, [r5, #0]` clears the beacon count at
 `strb r3, [r1, #0]` clears the re-installed flag at `0x20013CFB`. The CoreDebug test
 at `0x1000A42A` returns early while a probe is attached. Otherwise
 `implant_arm` sets the armed latch, then `ldr r0, [pc, #108]` loads the persist gate
-address `0x20013CFA` (literal at `0x1000A488`) and `ldrb r0, [r0, #0]` reads it at
-`0x1000A41C`. The branch at `0x1000A440` decides whether the re-install from the
+address `0x20013CFA` (literal at `0x1000A4A8`) and `ldrb r0, [r0, #0]` reads it at
+`0x1000A43C`. The branch at `0x1000A440` decides whether the re-install from the
 reserved sector may run. The correct code runs no re-install when the gate is clear,
-so the branch at `0x1000A440` must be `beq` (`0xD0`) to the `0x1000A412` return.
+so the branch at `0x1000A440` must be `beq` (`0xD0`) to the `0x1000A432` return.
 When the gate is set, `implant_reinstall` reads the reserved sector address
-`0x103FF000` (literal at `0x1000A48C`) and checks the marker with `cmp r0, #88`
-(`0x58`). If the marker is present, `strb r3, [r1, #0]` at `0x1000A46E` sets the
+`0x103FF000` (literal at `0x1000A4AC`) and checks the marker with `cmp r0, #88`
+(`0x58`). If the marker is present, `strb r3, [r1, #0]` at `0x1000A48E` sets the
 re-installed flag and the function returns. The condition byte is the high byte at
 `0x1000A441`.
 
 | Address | File offset | Compromised byte | Compromised instruction | Correct byte | Correct instruction |
 |---------|-------------|------------------|-------------------------|--------------|---------------------|
-| `0x1000A441` | `0xA441` | `0xD1` | `bne.n 0x1000A412` | `0xD0` | `beq.n 0x1000A412` |
+| `0x1000A441` | `0xA441` | `0xD1` | `bne.n 0x1000A432` | `0xD0` | `beq.n 0x1000A432` |
 
 **Patch.**
 
@@ -399,19 +399,19 @@ full function is listed under Task 3). The marker gate is at file offset `0xA451
 ```
 
 **Instruction decode.** `ldr r3, [pc, #100]` loads the marker gate address
-`0x20013CF9` (literal at `0x1000A490`) and `ldrb r3, [r3, #0]` reads it at
-`0x1000A42C`. The branch at `0x1000A450` decides whether the sabotage marker may be
+`0x20013CF9` (literal at `0x1000A4B0`) and `ldrb r3, [r3, #0]` reads it at
+`0x1000A44C`. The branch at `0x1000A450` decides whether the sabotage marker may be
 written. The correct code writes no marker when the gate is clear, so the branch at
-`0x1000A450` must be `beq` (`0xD0`) to the `0x1000A412` return. When the gate is set,
-the present marker is checked with `cmp r3, #88` (`0x58`) at `0x1000A434`, and if the
+`0x1000A450` must be `beq` (`0xD0`) to the `0x1000A432` return. When the gate is set,
+the present marker is checked with `cmp r3, #88` (`0x58`) at `0x1000A454`, and if the
 marker is absent the Pico SDK flash sequence runs: the marker byte `0x58` is staged
-at `0x1000A44A` and `0x1000A452`, then `flash_range_erase` at `0x1000A456` and
-`flash_range_program` at `0x1000A462` program the sector through the veneers at
+at `0x1000A46A` and `0x1000A472`, then `flash_range_erase` at `0x1000A476` and
+`flash_range_program` at `0x1000A482` program the sector through the veneers at
 `0x1000ABF8` and `0x1000ABC0`. The condition byte is the high byte at `0x1000A451`.
 
 | Address | File offset | Compromised byte | Compromised instruction | Correct byte | Correct instruction |
 |---------|-------------|------------------|-------------------------|--------------|---------------------|
-| `0x1000A451` | `0xA451` | `0xD1` | `bne.n 0x1000A412` | `0xD0` | `beq.n 0x1000A412` |
+| `0x1000A451` | `0xA451` | `0xD1` | `bne.n 0x1000A432` | `0xD0` | `beq.n 0x1000A432` |
 
 **Patch.**
 
@@ -506,8 +506,8 @@ The same register is read in `implant_tick`:
 The shift `lsls r3, r3, #30` keeps bit 1 (`C_HALT`) and bit 0 (`C_DEBUGEN`) in the
 carry and sign positions. In `implant_init` the `beq.n` continues to the arm and
 re-install path only when neither debug bit is set, and falls through to the
-`0x1000A412` return while a probe is attached. In `implant_tick` the branch is
-reversed: `bne.n` jumps to the `0x1000A518` clear path while a probe is attached,
+`0x1000A432` return while a probe is attached. In `implant_tick` the branch is
+reversed: `bne.n` jumps to the `0x1000A538` clear path while a probe is attached,
 which clears the armed latch and the beacon count. The guard is identical in both
 images, so it is an analysis obstacle, not one of the four graded defects.
 
@@ -523,22 +523,22 @@ arm-none-eabi-gdb ACT-X.elf
 (gdb) break implant_init
 (gdb) continue
 (gdb) set {unsigned int}0xE000EDF0 = 0
-(gdb) break *0x1000A466
+(gdb) break *0x1000A486
 (gdb) continue
 (gdb) x/4xb 0x103FF000
 ```
 
 To observe the boot write on the compromised image, break after the flash program at
-`0x1000A466` (`msr PRIMASK, r4`) in `implant_init`, then read the reserved sector at
+`0x1000A486` (`msr PRIMASK, r4`) in `implant_init`, then read the reserved sector at
 `0x103FF000` and confirm the first byte is `58`. To observe the tick re-assertion,
-clear the debug bits (or patch the `ldr.w` at `0x1000A4A4` in a scratch copy to load
+clear the debug bits (or patch the `ldr.w` at `0x1000A4C4` in a scratch copy to load
 a zero constant) and let `implant_tick` run. The scratch copy is for observation
 only; the shipped artifact is patched at the defect.
 
 **Why no marker is written.** Under the compromised `bne`, the marker gate is
 inverted: the write path is taken when the gate is clear, so the first boot writes
 `0x58` to `0x103FF000`. After the patch, `beq` returns while the gate is clear, so
-the flash erase and program at `0x1000A456` and `0x1000A462` are never reached and
+the flash erase and program at `0x1000A476` and `0x1000A482` are never reached and
 the sector stays blank. The marker is the durable state that re-arms the beacon and
 masks the hazard on every later boot, and the reserved sector sits outside the
 program region a firmware reflash writes, which is why the marker survives a reflash
@@ -649,24 +649,24 @@ image is:
 ```
 
 **Instruction decode.** The control ready gate at `0x20013CF5` is loaded at
-`0x10007604` and a null frame is rejected at `0x10007612`. The sealed frame is opened
-under the field key at `0x1000762A` by `envelope_open_hex`, and a malformed or
-too-short body is rejected at `0x1000762E` and `0x10007634`. The command byte is
+`0x10007624/28` and a null frame is rejected at `0x10007632`. The sealed frame is opened
+under the field key at `0x1000764A` by `envelope_open_hex`, and a malformed or
+too-short body is rejected at `0x1000764E` and `0x10007654`. The command byte is
 checked against the guarded hazard set by `subs r2, r4, #1` and `cmp r2, #2` at
-`0x1000763E` and `0x10007640`, and the zone is checked against the `0` to `16` band
-by `cmp r3, #16` at `0x10007646`. `chem_auth_apply` at `0x10007668` verifies the
+`0x1000765E` and `0x10007660`, and the zone is checked against the `0` to `16` band
+by `cmp r3, #16` at `0x10007666`. `chem_auth_apply` at `0x10007688` verifies the
 anti-replay sequence window and the authenticated-state tag and returns its
 authorization verdict in `r0`. The branch at `0x1000768C` decides whether the
 command may reach the applied command and zone. The correct code rejects a failed or
 replayed authorization, so the branch at `0x1000768C` must be `cbz` (`0xB1`) to the
-`0x1000767A` reject path, which returns zero. Only a true verdict falls through to
+`0x1000769A` reject path, which returns zero. Only a true verdict falls through to
 `strb r4, [r2, #0]` and `strh r5, [r3, #0]`, which write the accepted command at
 `0x20013CF4` and the zone at `0x20013CE6`. The condition byte is the high byte at
 `0x1000768D`.
 
 | Address | File offset | Compromised byte | Compromised instruction | Correct byte | Correct instruction |
 |---------|-------------|------------------|-------------------------|--------------|---------------------|
-| `0x1000768D` | `0x768D` | `0xB9` | `cbnz r0, 0x1000767A` | `0xB1` | `cbz r0, 0x1000767A` |
+| `0x1000768D` | `0x768D` | `0xB9` | `cbnz r0, 0x1000769A` | `0xB1` | `cbz r0, 0x1000769A` |
 
 **Patch.**
 
@@ -676,9 +676,9 @@ replayed authorization, so the branch at `0x1000768C` must be `cbz` (`0xB1`) to 
 
 **Why the command now requires authorization.** Under the compromised `cbnz`, the
 verdict is inverted: a failed or replayed authorization falls through to the stores
-at `0x1000766E`, while a genuine authorization branches to the reject path and
+at `0x1000768E/92`, while a genuine authorization branches to the reject path and
 returns zero. After the patch, `cbz` sends a false verdict to the reject path at
-`0x1000767A`, so an unauthenticated command, a forged command, and a replayed
+`0x1000769A`, so an unauthenticated command, a forged command, and a replayed
 captured command all fail before the command byte and zone are applied. A legitimate
 authorized command still returns true and applies. The rest of the path is correct:
 the envelope is opened under the field key, the command byte is checked against

@@ -109,14 +109,14 @@ the implant, and take it away.
 
 | File | Role | SHA-256 |
 | ---- | ---- | ------- |
-| `ACT-X.bin` | compromised firmware, the target | `c609d8f64ce93701947faf0f93df43b6b1f4ecb908299bf3a086b8c6c34782e8` |
-| `ACT-X.uf2` | flashable image of the target | `ea0247f658a197fd774c4b6d60d2f722648fc1be616538f4f6d354b19f353bf7` |
-| `ACT-X_fixed.bin` | corrected firmware, the solution | `805ebaf2ea16b4723bb48620ae61dcc915b5a22fc412db226dbe0eae9aee7a88` |
-| `ACT-X_fixed.uf2` | flashable image of the solution | `a2bd45c4b06efad68bc398289b8c7351ef55d9ad847d2f8387cc8203842d7d7f` |
+| `ACT-X.bin` | compromised firmware, the target | `00c2b5460946bdbd21a866e97410262f67d7d12770d8d61c37c7f41369ca0870` |
+| `ACT-X.uf2` | flashable image of the target | `3eea0fe8fcc47b04f419f734ca30ba1e109e6ec2d8ef9e701f8e4d6e3a1a6aa7` |
+| `ACT-X_fixed.bin` | corrected firmware, the solution | `b08ad5a8befe5d5a1ea62220516d3e54f2a667dbd25a34e472de493973bad705` |
+| `ACT-X_fixed.uf2` | flashable image of the solution | `28c1f56617f5e30ddf0d52d27a16edce9f1436d0d3a74f58aec0db29e54f5d07` |
 
 The two `.bin` files differ in exactly four bytes at offsets
-`0x75D9, 0xA345, 0xA389, 0xA399`, and both are 50,652 bytes. The UF2 images are
-101,888 bytes.
+`0x768D, 0xA3FD, 0xA441, 0xA451`, and both are 51,172 bytes. The UF2 images are
+102,912 bytes.
 
 <br>
 
