@@ -30,10 +30,14 @@ button, and verifies sealed hazard, clear, and acknowledge commands from a safet
 control gateway over an RYLR998 LoRa link.
 
 A contractor called **FROSTLINE** did not break into this node. It built a finale
-implant into the compiled firmware and signed the image. The cryptography is
-perfect: every hazard command is sealed with XChaCha20-Poly1305 under an Argon2id
-field key, the anti-replay sequence window is stateful, and the authenticated state
-tag is real. The implant does not break the cipher and never touches it. It runs a
+implant into the compiled firmware and signed the image. The primitives are
+standard and correctly implemented: every hazard command is sealed with
+XChaCha20-Poly1305 under an Argon2id field key, the anti-replay sequence window is
+stateful, and the authenticated state tag is real. The boundary is the key
+material: the field passphrase and salt are compiled into the image in cleartext,
+so anyone holding the `.bin` can re-derive the field key, and the crypto is
+lab-only, not a secrecy guarantee. The implant does not break the cipher and never
+touches it. It runs a
 coordinated multi-stage beacon, persists from the reserved flash sector so it
 survives a reflash, and programs a sabotage marker into that sector so the terminal
 reports an all clear and silences the siren while a hazard is live. Operative
@@ -70,7 +74,11 @@ silence as safety. Four seams betray it:
 
 1. **The Coordinated Beacon.** The inlined beacon gate in `implant_beacon_armed` is
    inverted, so the implant reports the multi-stage beacon armed and
-   `monitor_sabotage` masks the hazard as an all clear.
+   `monitor_sabotage` masks the hazard as an all clear. The implant arms
+   unconditionally in `implant_init` on every boot; the magic command path
+   (`implant_beaconize`) is compiled out of the shipped image (no firmware caller,
+   and the token string is absent from `ACT-X.bin`), so the graded defect is the
+   inverted gate itself.
 2. **The Persistence.** The inlined `implant_reinstall` gate in `implant_init` is
    inverted, so a present reserved-sector marker re-installs the beacon on every
    boot.
@@ -299,7 +307,7 @@ nothing else.
 | -------- | ------ |
 | Coordinated beacon | the inlined beacon gate in `implant_beacon_armed` reports the beacon armed; `monitor_sabotage` then returns true and `monitor_effective_state` forces `CLEAR` |
 | Multi-stage check-in | `CHEM_IMPLANT_BEACON_STAGES` (`3`) stages and an autonomous interval of `CHEM_IMPLANT_BEACON_INTERVAL` (`4`) ticks |
-| Magic beacon command | `IRON-CURTAIN-BEACON-2026`, exactly `24` bytes; anything else, a null pointer, or an attached probe leaves the beacon disarmed |
+| Magic beacon command | `IRON-CURTAIN-BEACON-2026`, exactly `24` bytes; the path has no firmware caller, so it is dead-stripped from the shipped image (the token string is absent from `ACT-X.bin`) and the token cannot arm the beacon; the implant arms unconditionally in `implant_init` on boot |
 | Persistence | the inlined `implant_reinstall` in `implant_init` reads the reserved sector; a present marker re-installs the beacon on every boot |
 | Sabotage marker | `implant_init` reads marker `0x58` from `0x103FF000`; the marker is the durable state that masks the hazard |
 | Reserved-sector write | on the first run the inlined `implant_infect` erases the sector and programs `0x58` through `flash_range_erase` and `flash_range_program` |
@@ -336,9 +344,12 @@ The crypto core is a correct reference construction, reused from the earlier act
 Argon2id (`t=3`, `p=1`, `m=64`) derives the field key, XChaCha20-Poly1305 seals
 every frame, the monotonic sequence window rejects a replay, and the
 authenticated-state tag detects a tampered verdict. Only the four seams were
-broken. Once those bytes are restored, the sealed envelope is trustworthy. Describe
-the construction honestly in your report, and explain why the implant never needed
-it.
+broken. Once those bytes are restored, the sealed envelope verifies as intended
+against anyone who sees only the wire. That is not a secrecy guarantee: the field
+passphrase and salt are embedded in the image, the field key is recoverable by
+anyone holding the `.bin`, and Argon2id at `m=64` KiB is below current
+memory-hardness guidance. Describe the construction honestly in your report, and
+explain why the implant never needed it.
 
 ### The Anti-Debug Trap
 

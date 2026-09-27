@@ -89,14 +89,17 @@ Debug Probe.
 
 | # | Name | What FROSTLINE did |
 | - | ---- | ------------------ |
-| 1 | The Coordinated Beacon | inverted the beacon gate so the implant reports the beacon armed and the monitor masks the hazard as `SAFE` |
+| 1 | The Coordinated Beacon | inverted the beacon gate so the implant reports the beacon armed and the monitor masks the hazard as `SAFE`; the implant arms unconditionally in `implant_init`, since the magic command path is dead-stripped from the shipped image |
 | 2 | The Persistence | inverted the persist gate so a present reserved-sector marker re-installs the implant on boot |
 | 3 | The Sabotage Marker | inverted the marker gate so the first boot programs marker `0x58` into reserved sector `0x103FF000` with the real flash API |
 | 4 | The Hazard Command Authorization | inverted the authorization verdict so an unauthenticated or replayed hazard command is accepted |
 
-The wire is sealed with XChaCha20-Poly1305, keyed through Argon2id. The cryptography
-is correct. Three of the four defects are not in the cipher at all: they are a
-coordinated beacon that reports a fake all clear, a persistence re-install that
+The wire is sealed with XChaCha20-Poly1305, keyed through Argon2id. The
+primitives are standard and correctly implemented, but the field passphrase and
+salt are compiled into the image in cleartext, so this is a lab-only key and not
+a secrecy guarantee. Three of the four defects are not in the cipher at all: they
+are a coordinated beacon that reports a fake all clear, a persistence re-install
+that
 survives a reflash, and a sabotage marker written to the reserved sector. The fourth
 is a policy seam in the hazard command path. The implant never needs the cipher. It
 sits beside the authenticated link and overrides the output, so a perfectly valid
